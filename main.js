@@ -6,6 +6,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js';
 import { createWheelchair } from './wheelchairModeling.js';
 import CSG2Geom from "./csg-2-geom.js";
+import updateGeometryPositions from "./updateGeo.js";
 
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
@@ -627,33 +628,42 @@ function loadPLYFile(PLYposx,PLYposy,PLYposz) {
 
 // Function to load and update the OBJ mesh with new parameters
 function loadAndUpdateOBJ(posx, posy, posz, wheelchairParams) {
+    var wheelchairMaterial = new THREE.MeshPhongMaterial({
+        color: 0xffffff,
+        specular: 0xaaaaaa,
+        shininess: 20,
+        shading: THREE.SmoothShading
+    });
+    
     if (!objMesh) {
         // Create the initial wheelchair mesh if it doesn't exist
         let wheelchairModel = createWheelchair(wheelchairParams);
         let wheelchairGeometry = CSG2Geom(wheelchairModel);
-
-        var wheelchairMaterial = new THREE.MeshPhongMaterial({
-            color: 0xffffff,
-            specular: 0xaaaaaa,
-            shininess: 20,
-            shading: THREE.SmoothShading
-        });
-
+        
         objMesh = new THREE.Mesh(wheelchairGeometry, wheelchairMaterial);
         objGeometry = wheelchairGeometry;
-        scene.add(objMesh);
+        
     } else {
         // Update the existing mesh with new parameters
+        scene.remove(objMesh);
+        // console.log(objGeometry);
+        // console.log(updatedWheelchairModel);
+        // let updatedWheelchairGeometry = updateGeometryPositions(objGeometry, updatedWheelchairModel);
+
         let updatedWheelchairModel = createWheelchair(wheelchairParams);
         let updatedWheelchairGeometry = CSG2Geom(updatedWheelchairModel);
+       
+        let newMesh = new THREE.Mesh(updatedWheelchairGeometry, wheelchairMaterial);    
+        objMesh = newMesh;
         objGeometry = updatedWheelchairGeometry;
-        objMesh.geometry = updatedWheelchairGeometry;
     }
+    
 
     // Update the position, scale, and rotation
     objMesh.position.set(posx - 0.3, posy - 0.7, posz);
     objMesh.scale.set(0.001, 0.001, 0.001);
     objMesh.rotation.set(-Math.PI / 2, 0, -Math.PI / 2);
+    scene.add(objMesh);
 }
 
 

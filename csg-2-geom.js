@@ -87,4 +87,3 @@ import {
     geo.attributes.normal.array.needsUpdate = true;
     return geo;
   }
-  

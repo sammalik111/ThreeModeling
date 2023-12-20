@@ -256,3 +256,4 @@ export function createWheelchair(params) {
     let model = union(seatCushion,seatrest,armrests,backWheels,wheelHandles,frontWheels,backrest,legrests);
     return model;
 }
+// main.js re-written to use the new function
