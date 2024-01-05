@@ -1,6 +1,4 @@
 import * as THREE from 'three';
-import { CSG } from 'three-csg';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js';
@@ -26,10 +24,10 @@ var plyParameterChanged = false;
 var oldStd, oldSHS, oldStt, oldBMI, oldGen, oldAge;
 
 // wheelchair parameters
-var oldSEATWIDTH,oldSEATHEIGHT,oldCAMBER,oldLEGLEN,oldLEGRESTANG,oldFLOORHEIGHT;
 var objMesh;
 var objGeometry;
 let objparameterChanged = false;
+var wheelchairParams;
 
 var plane;
 var isLicenseAgreed = false;
@@ -646,12 +644,11 @@ function loadAndUpdateOBJ(posx, posy, posz, wheelchairParams) {
     } else {
         // Update the existing mesh with new parameters
         scene.remove(objMesh);
-        // console.log(objGeometry);
-        // console.log(updatedWheelchairModel);
-        // let updatedWheelchairGeometry = updateGeometryPositions(objGeometry, updatedWheelchairModel);
+        
 
         let updatedWheelchairModel = createWheelchair(wheelchairParams);
-        let updatedWheelchairGeometry = CSG2Geom(updatedWheelchairModel);
+        // let updatedWheelchairGeometry = CSG2Geom(updatedWheelchairModel);
+        let updatedWheelchairGeometry = updateGeometryPositions(objGeometry, updatedWheelchairModel);
        
         let newMesh = new THREE.Mesh(updatedWheelchairGeometry, wheelchairMaterial);    
         objMesh = newMesh;
@@ -669,6 +666,29 @@ function loadAndUpdateOBJ(posx, posy, posz, wheelchairParams) {
 
 // init function
 function init(data) {
+
+    wheelchairParams = {
+        seatWidth: anth.SEATWIDTH,              // Width of the seat in inches
+        seatHeight: anth.SEATHEIGHT,            // Height of the seat from the floor in inches
+        wheelDiameter: 24,                      // Diameter of the wheelchair wheels in inches
+        seatToFloorHeight: anth.FLOORHEIGHT,    // Height of the seat from the floor in inches
+        showPushHandle: true,                   // Show Push Handle (true/false)
+        showArmrest: true,                      // Show Armrest (true/false)
+        camberAngle: anth.CAMBER,               // Camber angle of the wheels in degrees
+        tubeDiameter: 1,                        // Diameter of the wheelchair frame tubes in inches
+        tubeThickness: 0.1,                     // Thickness of the wheelchair frame tubes in inches
+        tubeAngle: 15,                          // Angle of the frame tubes from vertical in degrees
+        smallWheelDiameter: 6,                  // Diameter of the small front wheels in inches
+        smallWheelWidth: 1,                     // Width of the small front wheels in inches
+        wheelHandleThickness: 0.25,             // Thickness of the wheel handles in inches
+        seatCushThick : 4,                      // Thickness of the seat cushion in inches
+        legrestLength: anth.LEGLEN,             // Legrest Length in inches
+        legrestAngle: anth.LEGRESTANG,          // Legrest Angle in degrees
+        seatToBackrestAngle: 90,                // Angle between the seat and backrest in degrees
+        castorForkAngle: 90,                    // Castor Fork Angle in degrees
+        footrestLinkLength: 12,                 // Footrest Link Length in inches
+        wheelThickness: 1,                      // Thickness of the wheelchair wheels in inches
+    };
     
     // save the PCA data as a global variable
     PCAdata = data;
@@ -729,28 +749,6 @@ function init(data) {
 
 
     // Load your OBJ file and Plyfile using a library like three.js
-    const wheelchairParams = {
-        seatWidth: anth.SEATWIDTH,              // Width of the seat in inches
-        seatHeight: anth.SEATHEIGHT,            // Height of the seat from the floor in inches
-        wheelDiameter: 24,                      // Diameter of the wheelchair wheels in inches
-        seatToFloorHeight: anth.FLOORHEIGHT,    // Height of the seat from the floor in inches
-        showPushHandle: true,                   // Show Push Handle (true/false)
-        showArmrest: true,                      // Show Armrest (true/false)
-        camberAngle: anth.CAMBER,               // Camber angle of the wheels in degrees
-        tubeDiameter: 1,                        // Diameter of the wheelchair frame tubes in inches
-        tubeThickness: 0.1,                     // Thickness of the wheelchair frame tubes in inches
-        tubeAngle: 15,                          // Angle of the frame tubes from vertical in degrees
-        smallWheelDiameter: 6,                  // Diameter of the small front wheels in inches
-        smallWheelWidth: 1,                     // Width of the small front wheels in inches
-        wheelHandleThickness: 0.25,             // Thickness of the wheel handles in inches
-        seatCushThick : 4,                      // Thickness of the seat cushion in inches
-        legrestLength: anth.LEGLEN,             // Legrest Length in inches
-        legrestAngle: anth.LEGRESTANG,          // Legrest Angle in degrees
-        seatToBackrestAngle: 90,                // Angle between the seat and backrest in degrees
-        castorForkAngle: 90,                    // Castor Fork Angle in degrees
-        footrestLinkLength: 12,                 // Footrest Link Length in inches
-        wheelThickness: 1,                      // Thickness of the wheelchair wheels in inches
-    };
     loadAndUpdateOBJ(controls.target.x, controls.target.y, controls.target.z, wheelchairParams);
     loadPLYFile(controls.target.x, controls.target.y -0.08, controls.target.z+0.03);
     // Update controls to apply changes
@@ -881,38 +879,14 @@ function animate() {
     if (objparameterChanged) {
         gui.__controllers[1].updateDisplay();
 
-        oldSEATHEIGHT = anth.SEATHEIGHT;
-        oldFLOORHEIGHT = anth.FLOORHEIGHT;
-        oldLEGLEN = anth.LEGLEN;
-        oldCAMBER = anth.CAMBER;
-        oldLEGRESTANG = anth.LEGRESTANG;
-        oldSEATWIDTH = anth.SEATWIDTH;
+        wheelchairParams.seatHeight = anth.SEATHEIGHT;
+        wheelchairParams.seatToFloorHeight = anth.FLOORHEIGHT;
+        wheelchairParams.legrestLength = anth.LEGLEN;
+        wheelchairParams.camberAngle = anth.CAMBER;
+        wheelchairParams.legrestAngle = anth.LEGRESTANG;
+        wheelchairParams.seatWidth = anth.SEATWIDTH;
 
-        console.log("wheelchair parameters changed");
-
-        const wheelchairParams = {
-            seatWidth: anth.SEATWIDTH,              // Width of the seat in inches
-            seatHeight: anth.SEATHEIGHT,            // Height of the seat from the floor in inches
-            wheelDiameter: 24,                      // Diameter of the wheelchair wheels in inches
-            seatToFloorHeight: anth.FLOORHEIGHT,    // Height of the seat from the floor in inches
-            showPushHandle: true,                   // Show Push Handle (true/false)
-            showArmrest: true,                      // Show Armrest (true/false)
-            camberAngle: anth.CAMBER,               // Camber angle of the wheels in degrees
-            tubeDiameter: 1,                        // Diameter of the wheelchair frame tubes in inches
-            tubeThickness: 0.1,                     // Thickness of the wheelchair frame tubes in inches
-            tubeAngle: 15,                          // Angle of the frame tubes from vertical in degrees
-            smallWheelDiameter: 6,                  // Diameter of the small front wheels in inches
-            smallWheelWidth: 1,                     // Width of the small front wheels in inches
-            wheelHandleThickness: 0.25,             // Thickness of the wheel handles in inches
-            seatCushThick : 4,                      // Thickness of the seat cushion in inches
-            legrestLength: anth.LEGLEN,             // Legrest Length in inches
-            legrestAngle: anth.LEGRESTANG,          // Legrest Angle in degrees
-            seatToBackrestAngle: 90,                // Angle between the seat and backrest in degrees
-            castorForkAngle: 90,                    // Castor Fork Angle in degrees
-            footrestLinkLength: 12,                 // Footrest Link Length in inches
-            wheelThickness: 1,                      // Thickness of the wheelchair wheels in inches
-        };
-
+        // load OBJ file;
         loadAndUpdateOBJ(controls.target.x, controls.target.y, controls.target.z, wheelchairParams);
         // Reset the flag
         objparameterChanged = false;
