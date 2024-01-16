@@ -76,4 +76,3 @@ export default function updateGeometryWithCSGData(OrigGeo, csg) {
 
     return OrigGeo;
 }
-

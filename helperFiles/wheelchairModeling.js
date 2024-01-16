@@ -27,7 +27,7 @@ const wheelHandleThick = 1.3/2; // thickness for the diameter of the wheel handl
 const wheelHandleRad = 23/2; // Radius for the wheel Handle.
 const armrestCushionHeight = 1.5; // armrest cushion height
 const frontWheelGrabThick = 0.25; // thickness of the front wheels holding structure
-const segments = 32; // number of segments to generate per extrusion
+let segments = 16; // number of segments to generate per extrusion
 
 function getParameterDefinitions() {
 /**
@@ -228,7 +228,7 @@ function createLegrestStructure(params,side) {
 }
 
 
-export function createWheelchair(params) {
+export function createWheelchair(params, quality) {
     // Parameters relations as previously defined
     const wBClearance = 1;
     const seatDepth = params.seatWidth;
@@ -242,6 +242,8 @@ export function createWheelchair(params) {
     const overallLength = 0;
     const overallHeight = 34;
     const pushHandleHeight = overallHeight;
+
+    segments = quality;
   
     // generate the parts of the 3d model
     let seatCushion = colorize(colorNameToRgb('black'), createSeatCushion(params, seatDepth, wheelBase));

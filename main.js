@@ -2,9 +2,11 @@ import * as THREE from 'three';
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js';
-import { createWheelchair } from './wheelchairModeling.js';
-import CSG2Geom from "./csg-2-geom.js";
-import updateGeometryPositions from "./updateGeo.js";
+import { createWheelchair } from './helperFiles/wheelchairModeling.js';
+import CSG2Geom from "./helperFiles/csg-2-geom.js";
+import updateGeometryPositions from "./helperFiles/updateGeo.js";
+import { showLoadingSymbol, hideLoadingSymbol } from './helperFiles/loader.js';
+
 
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
@@ -26,6 +28,7 @@ var oldStd, oldSHS, oldStt, oldBMI, oldGen, oldAge;
 // wheelchair parameters
 var objMesh;
 var objGeometry;
+var objMaterial;
 let objparameterChanged = false;
 var wheelchairParams;
 
@@ -44,7 +47,6 @@ let cameraOrtho, sceneOrtho;
 var endline = 43666;
 
 
-var controls;
 
 // Track bars
 var anth = new function() {
@@ -79,6 +81,8 @@ var anth = new function() {
         
             // Export objGeometry as STL
             if (objGeometry) {
+                // newMesh(wheelchairParams, 32, objMaterial);
+                loadAndUpdateOBJ(controls.target.x,controls.target.y,controls.target.z, wheelchairParams, 32, objMaterial);
                 ASCIIStlWriter.save(objGeometry, this.FileName + "_wheelchair.stl");
             }
         } else if (this.FileType === 'obj') {
@@ -93,6 +97,7 @@ var anth = new function() {
         
             // Export objGeometry as OBJ
             if (objGeometry) {
+                loadAndUpdateOBJ(controls.target.x,controls.target.y,controls.target.z, wheelchairParams, 32, objMaterial);
                 let objObjectToExport = createExportableObject(objGeometry);
                 var objExporter = new OBJExporter();
                 var objObjString = objExporter.parse(objObjectToExport);
@@ -625,7 +630,7 @@ function loadPLYFile(PLYposx,PLYposy,PLYposz) {
 
 
 // Function to load and update the OBJ mesh with new parameters
-function loadAndUpdateOBJ(posx, posy, posz, wheelchairParams) {
+function loadAndUpdateOBJ(posx, posy, posz, wheelchairParams, wheelchairQuality) {
     var wheelchairMaterial = new THREE.MeshPhongMaterial({
         color: 0xffffff,
         specular: 0xaaaaaa,
@@ -633,29 +638,9 @@ function loadAndUpdateOBJ(posx, posy, posz, wheelchairParams) {
         shading: THREE.SmoothShading
     });
     
-    if (!objMesh) {
-        // Create the initial wheelchair mesh if it doesn't exist
-        let wheelchairModel = createWheelchair(wheelchairParams);
-        let wheelchairGeometry = CSG2Geom(wheelchairModel);
-        
-        objMesh = new THREE.Mesh(wheelchairGeometry, wheelchairMaterial);
-        objGeometry = wheelchairGeometry;
-        
-    } else {
-        // Update the existing mesh with new parameters
-        scene.remove(objMesh);
-        
-
-        let updatedWheelchairModel = createWheelchair(wheelchairParams);
-        // let updatedWheelchairGeometry = CSG2Geom(updatedWheelchairModel);
-        let updatedWheelchairGeometry = updateGeometryPositions(objGeometry, updatedWheelchairModel);
-       
-        let newMesh = new THREE.Mesh(updatedWheelchairGeometry, wheelchairMaterial);    
-        objMesh = newMesh;
-        objGeometry = updatedWheelchairGeometry;
-    }
+    // Create the new wheelchair mesh
+    newMesh(wheelchairParams, wheelchairQuality, wheelchairMaterial);
     
-
     // Update the position, scale, and rotation
     objMesh.position.set(posx - 0.3, posy - 0.7, posz);
     objMesh.scale.set(0.001, 0.001, 0.001);
@@ -663,6 +648,27 @@ function loadAndUpdateOBJ(posx, posy, posz, wheelchairParams) {
     scene.add(objMesh);
 }
 
+
+function newMesh(wheelchairParams, wheelchairQuality, wheelchairMaterial) {
+    // Create the initial wheelchair mesh if it doesn't exist
+    if (!objMesh) {
+        let wheelchairModel = createWheelchair(wheelchairParams, wheelchairQuality);
+        let wheelchairGeometry = CSG2Geom(wheelchairModel);
+        
+        objMesh = new THREE.Mesh(wheelchairGeometry, wheelchairMaterial);
+        objMaterial = wheelchairMaterial;
+        objGeometry = wheelchairGeometry;
+    }
+    else {
+        scene.remove(objMesh);
+        let updatedWheelchairModel = createWheelchair(wheelchairParams,wheelchairQuality);
+        let updatedWheelchairGeometry = updateGeometryPositions(objGeometry, updatedWheelchairModel);
+        
+        objMesh = new THREE.Mesh(updatedWheelchairGeometry, wheelchairMaterial);
+        objMaterial = wheelchairMaterial;
+        objGeometry = updatedWheelchairGeometry;
+    }
+}
 
 // init function
 function init(data) {
@@ -749,7 +755,7 @@ function init(data) {
 
 
     // Load your OBJ file and Plyfile using a library like three.js
-    loadAndUpdateOBJ(controls.target.x, controls.target.y, controls.target.z, wheelchairParams);
+    loadAndUpdateOBJ(controls.target.x, controls.target.y, controls.target.z, wheelchairParams, 20);
     loadPLYFile(controls.target.x, controls.target.y -0.08, controls.target.z+0.03);
     // Update controls to apply changes
     controls.update();
@@ -844,9 +850,8 @@ function updatePLYGeometry(anth, geometry, geometryZero, PCAdata, predAnthNum, p
 }
 
 
-
 // animate function
-function animate() {
+async function animate() {
 
     requestAnimationFrame( animate );
 
@@ -860,7 +865,6 @@ function animate() {
 
     if(plyParameterChanged)
     {
-        
         gui.__controllers[1].updateDisplay();
 
         oldStt = anth.STATURE;
@@ -886,8 +890,18 @@ function animate() {
         wheelchairParams.legrestAngle = anth.LEGRESTANG;
         wheelchairParams.seatWidth = anth.SEATWIDTH;
 
+        
         // load OBJ file;
-        loadAndUpdateOBJ(controls.target.x, controls.target.y, controls.target.z, wheelchairParams);
+        showLoadingSymbol();
+        // Delay the execution of loadAndUpdateOBJ and hideLoadingSymbol
+        setTimeout(() => {
+            loadAndUpdateOBJ(controls.target.x, controls.target.y, controls.target.z, wheelchairParams, 20);
+
+            setTimeout(() => {
+                hideLoadingSymbol();
+            }, 500); // 1 second delay before hideLoadingSymbol
+
+        }, 500); // 1 second delay before loadAndUpdateOBJ
         // Reset the flag
         objparameterChanged = false;
     }
