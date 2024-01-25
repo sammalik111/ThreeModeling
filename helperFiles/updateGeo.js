@@ -42,7 +42,7 @@ export default function updateGeometryWithCSGData(OrigGeo, csg) {
     const vertices = [];
     const indices = [];
     let idx = 0;
-
+    
     csg.polygons.forEach((polygon) => {
         polygon.vertices.forEach((vertex) => {
             vertex.index = idx;

@@ -231,43 +231,43 @@ folder2.add(anth, 'BodyDimensions').name("Export Body Dimentions");
 
 
 
-var folder3 = gui.addFolder('Visualization Option');
-var palette = new function() {
-    this.bgColor = [ 255, 255, 255 ];
-    this.modelColor =[ 255, 255, 255 ];
-    this.showwireframe= false;
-    this.reset = function(){
-        plane.visible = true;
-        renderer.setClearColor( scene.fog.color, 1 );
-        material.color.r = 1;
-        material.color.g = 1;
-        material.color.b = 1;
-    };
-};
-folder3.addColor(palette, 'bgColor').name("Set Background Color")
-.onChange(function(e)
-{
-    plane.visible = false;
-    var bgcolor = new THREE.Color( 0x66aacc ) ;
-    bgcolor.r = e[0]/255.0;
-    bgcolor.g = e[1]/255.0;
-    bgcolor.b = e[2]/255.0;
-    renderer.setClearColor( bgcolor, 0);
-});
+// var folder3 = gui.addFolder('Visualization Option');
+// var palette = new function() {
+//     this.bgColor = [ 255, 255, 255 ];
+//     this.modelColor =[ 255, 255, 255 ];
+//     this.showwireframe= false;
+//     this.reset = function(){
+//         plane.visible = true;
+//         renderer.setClearColor( scene.fog.color, 1 );
+//         material.color.r = 1;
+//         material.color.g = 1;
+//         material.color.b = 1;
+//     };
+// };
+// folder3.addColor(palette, 'bgColor').name("Set Background Color")
+// .onChange(function(e)
+// {
+//     plane.visible = false;
+//     var bgcolor = new THREE.Color( 0x66aacc ) ;
+//     bgcolor.r = e[0]/255.0;
+//     bgcolor.g = e[1]/255.0;
+//     bgcolor.b = e[2]/255.0;
+//     renderer.setClearColor( bgcolor, 0);
+// });
 
-folder3.addColor(palette, 'modelColor').name("Set Model Color")
-.onChange(function(e)
-{
-    material.color.r = e[0]/255.0;
-    material.color.g = e[1]/255.0;
-    material.color.b = e[2]/255.0;
-});
-folder3.add(palette, 'showwireframe').name("Wireframe View On/Off")
-.onChange(function()
-{
-    material.wireframe = palette.showwireframe;
-});
-folder3.add(palette, 'reset').name("Reset Visual Option");
+// folder3.addColor(palette, 'modelColor').name("Set Model Color")
+// .onChange(function(e)
+// {
+//     material.color.r = e[0]/255.0;
+//     material.color.g = e[1]/255.0;
+//     material.color.b = e[2]/255.0;
+// });
+// folder3.add(palette, 'showwireframe').name("Wireframe View On/Off")
+// .onChange(function()
+// {
+//     material.wireframe = palette.showwireframe;
+// });
+// folder3.add(palette, 'reset').name("Reset Visual Option");
 
 
 // Create a folder named "Wheelchair Parameters"
