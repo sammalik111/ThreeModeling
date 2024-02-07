@@ -8,7 +8,6 @@ import updateGeometryPositions from "./helperFiles/updateGeo.js";
 import { showLoadingSymbol, hideLoadingSymbol } from './helperFiles/loader.js';
 
 
-if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 // Global variables
 var container;
