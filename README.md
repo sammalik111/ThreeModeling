@@ -37,9 +37,9 @@ This guide provides detailed instructions for setting up and replicating the pro
 - **FTP Service:** Download and install FileZilla or any other FTP service for file transfer.
 - **Server Connection Note:** Connect via the interactive login button, NOT quick connect
 - **Server Connection Details:**
-  - **Host:** biosciweb.umtri.umich.edu
-  - **Username:** UMich username
-  - **Password:** UMich password
+  - **Host:** Server Name
+  - **Username:** Personal username
+  - **Password:** Personal password
   - **Port:** 22 for SFTP
 - **File Transfer:**
   - Connect to the server using the provided credentials.
