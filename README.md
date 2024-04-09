@@ -8,7 +8,7 @@ This guide provides detailed instructions for setting up and replicating the pro
 - **Clone Repository:** Use the `git clone` command followed by the repository link to copy the project files to your local machine.
 - **File Structure:** Ensure the file structure is maintained as follows:
   - **Helper Files Folder:** Contains JavaScript files responsible for rendering 3D models.
-  - **index.html:** Base website HTML file.
+  - **index.html:** Base website HTML file that will be launched by the server.
   - **main.js:** JavaScript file for rendering everything in the scene using Three.js.
 
 ## Requirements
@@ -25,7 +25,7 @@ This guide provides detailed instructions for setting up and replicating the pro
 
 ## Building the Project
 
-- **Production Build:** Run `npm run build` to create an `index.html` file that will be uploaded to the server.
+- **Production Build:** Run `npm run build` to create an `index.html` deployable file that will be uploaded to the server.
 
 ## Connecting to UMich VPN
 
@@ -38,8 +38,8 @@ This guide provides detailed instructions for setting up and replicating the pro
 - **Server Connection Note:** Connect via the interactive login button, NOT quick connect
 - **Server Connection Details:**
   - **Host:** Server Name
-  - **Username:** Personal username
-  - **Password:** Personal password
+  - **Username:** Personal UMich username
+  - **Password:** Personal UMich password
   - **Port:** 22 for SFTP
 - **File Transfer:**
   - Connect to the server using the provided credentials.
