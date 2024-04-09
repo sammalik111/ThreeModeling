@@ -17,6 +17,7 @@ This guide provides detailed instructions for setting up and replicating the pro
   - **Install Node.js:** Download and install Node.js from the official website.
   - **Navigate to Repository:** Using the command line interface (CLI), navigate to the cloned repository.
   - **npm install:** Run `npm install` command to install project dependencies. Note that all other dependencies are retrieved from Node.js, so no additional importing is required.
+  - **Node Modules** Because Node Modules is such a big directory, do not import or export it manually. node install will deal with that for you.
 
 ## Running the Project
 
