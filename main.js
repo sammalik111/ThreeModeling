@@ -6,46 +6,54 @@ import { createWheelchair } from './helperFiles/wheelchairModeling.js';
 import CSG2Geom from "./helperFiles/csg-2-geom.js";
 import updateGeometryPositions from "./helperFiles/updateGeo.js";
 import { showLoadingSymbol, hideLoadingSymbol } from './helperFiles/loader.js';
+import rotatingFrameTransformation from './rotation_of_the_frame.js';
 
 
 
-// Global variables
-var container;
-var camera, cameraTarget, scene, renderer, controls;
-var light1, light2;
+//------ Global variables ------//
 
-
+// human body variables
 var material;
 var PCAdata;
 var plyMesh;
 var plyGeometry ;
 var geometryZero = [];
 var plyParameterChanged = false;
-// human ANTH data
-var oldStd, oldSHS, oldStt, oldBMI, oldGen, oldAge;
+var plyMaterial;
+var predAnthNum = 28;
+var predLandmarkNum = 119;
 
-// wheelchair parameters
+// wheelchair variables
 var objMesh;
 var objGeometry;
 var objMaterial;
 let objparameterChanged = false;
 var wheelchairParams;
 
-var plane;
+// GUI variables
 var isLicenseAgreed = false;
 var license ='<div class="myBox" style="text-align: left;"><p><strong>End-User License Agreement</strong></p><p>University of Michigan Office of Technology Transfer File: 2019-247</p><p>IMPORTANT &ndash; READ CAREFULLY: This Agreement is a legal agreement between &ldquo;LICENSEE&rdquo; (defined below) and The Regents of The University of Michigan, a constitutional corporation of the state of Michigan (&ldquo;MICHIGAN&rdquo;).</p><p>BACKGROUND</p><ol><li>Faculty at the University of Michigan have developed a proprietary application and related documentation, referred to as &ldquo;Online Body Shape Models&rdquo;, and further described in MICHIGAN Office of Technology File 2019-247 (hereinafter referred to as "MODEL"); and</li><li>LICENSEE desires to obtain, and MICHIGAN, consistent with its mission of education and research, desires to grant, a license to use the MODEL subject to the terms and conditions set forth below; and</li></ol><p>The parties therefore agree as follows:</p><ol><li>&nbsp;&nbsp; LICENSE</li><li>The term &ldquo;LICENSEE&rdquo; shall mean the person downloading the MODEL solely for personal use by that person on the personal equipment of that person</li><li>Subject to the terms and conditions of this Agreement, MICHIGAN hereby grants to LICENSEE a non-exclusive, non-transferable right to copy, download and use the MODEL solely by LICENSEE for academic, research, and non-commercial purposes.</li><li>LIMITATION OF LICENSE AND RESTRICTIONS</li><li>LICENSEE shall not translate, reverse engineer, decompile, disassemble, modify, create derivative works of or publicly display the MODEL, in whole or in part, unless expressly authorized by this Agreement.</li><li>LICENSEE agrees that it shall use the MODEL only for LICENSEE\'S sole and exclusive use, and shall not disclose, sell, license, or otherwise distribute the MODEL to any third party without the prior written consent of MICHIGAN. LICENSEE shall not assign this Agreement, and any attempt by LICENSEE to assign it shall be void from the beginning. LICENSEE agrees to secure and protect the MODEL and any copies in a manner consistent with the maintenance of MICHIGAN\'S rights in the MODEL and to take appropriate action by instruction or agreement with its employees who are permitted access to the MODEL in order to satisfy LICENSEE\'S obligations under this Agreement.</li><li>LICENSEE agrees that it shall include copyright notice &ldquo;Copyright 2018 The Regents of The University of Michigan &ndash; Biosciences Group UMTRI&rdquo; in all results, publications, presentations or other public displays of results which utilize the MODEL in whole or part.</li></ol><p>III. TITLE AND OWNERSHIP</p><ol><li>No ownership rights of MICHIGAN in the MODEL are conferred upon LICENSEE by this Agreement.</li><li>LICENSEE acknowledges MICHIGAN\'S proprietary rights in the MODEL and agrees to reproduce all copyright notices supplied by MICHIGAN on all copies of the MODEL, and on all MODEL outputs and copies of MODEL outputs.</li><li>DISCLAIMER OF WARRANTY AND LIMITATION OF LIABILITY</li><li>THE<strong> MODEL</strong> IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. <strong>MICHIGAN</strong> DOES NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE <strong>MODEL</strong> WILL MEET <strong>LICENSEE\'S </strong>REQUIREMENTS OR THAT OPERATION WILL BE UNINTERRUPTED OR ERROR FREE. MICHIGAN shall not be liable for special, indirect, incidental, or consequential damages with respect to any claim on account of or arising from this Agreement or use of the MODEL, even if MICHIGAN has been or is hereafter advised of the possibility of such damages. Because some states do not allow certain exclusions or limitations on implied warranties or of liability for consequential or incidental damages, the above exclusions may not apply to LICENSEE. In no event, however, will MICHIGAN be liable to LICENSEE, under any theory of recovery, in an amount in excess of the license fee paid by LICENSEE under this Agreement.</li><li>LICENSEE agrees that MICHIGAN has no obligation to provide to LICENSEE any maintenance, support, or update services. Should MICHIGAN provide any revised versions of the MODEL to LICENSEE, LICENSEE agrees that this license agreement shall apply to such revised versions.</li><li>The MODEL does not provide medical advice and is not intended as a sole means for patient diagnosis.&nbsp; It is not a substitute for professional medical advice, diagnosis or treatment.&nbsp; The MODEL is intended for informational purposes only.&nbsp; MICHIGAN does not warrant or guarantee the accuracy or completeness of the information in the MODEL and specifically disclaims any liability therefore.</li><li>WARRANTY OF LICENSEE</li></ol><p>LICENSEE warrants and represents that it will carefully review any documentation or instructional material provided by MICHIGAN.</p><ol><li>TERMINATION</li></ol><p>If LICENSEE at any time fails to abide by the terms of this Agreement, MICHIGAN shall have the right to immediately terminate the license granted herein, require the return or destruction of all copies of the MODEL from LICENSEE and certification in writing as to such return or destruction, and pursue any other legal or equitable remedies available.</p><p>VII. MISCELLANEOUS</p><ol><li>This Agreement shall be construed in accordance with the laws of the state of Michigan. Should LICENSEE for any reason bring a claim, demand, or other action against MICHIGAN, its agents or employees, arising out of this Agreement or the MODEL licensed herein, LICENSEE agrees to bring said claim only in the Michigan Court of Claims.</li><li>THIS AGREEMENT REPRESENTS THE COMPLETE AND EXCLUSIVE STATEMENT OF THE AGREEMENT BETWEEN<strong>MICHIGAN</strong> AND <strong>LICENSEE </strong>AND SUPERSEDES ALL PRIOR AGREEMENTS, PROPOSALS, REPRESENTATIONS AND OTHER COMMUNICATIONS, VERBAL OR WRITTEN, BETWEEN THEM WITH RESPECT TO USE OF THE<strong>MODEL</strong>. THIS AGREEMENT MAY BE MODIFIED ONLY WITH THE MUTUAL WRITTEN APPROVAL OF AUTHORIZED REPRESENTATIVES OF THE PARTIES.</li><li>The terms and conditions of this Agreement shall prevail notwithstanding any different, conflicting, or additional terms or conditions which may appear in any purchase order or other document submitted by LICENSEE. LICENSEE agrees that such additional or inconsistent terms are deemed rejected by MICHIGAN.</li><li>Unless otherwise exempt therefrom, LICENSEE agrees that it will be responsible for any sales, use or excise taxes imposed by any governmental unit in this transaction except income taxes.</li><li>LICENSEE acknowledges that the MODEL is of United States origin. LICENSEE agrees to comply with all applicable international and national laws that apply to the MODEL, including the United States Export Administration Regulations, as well as end-user, end-use, and destination restrictions issued by the United States.</li><li>All copies of the MODEL distributed by LICENSEE shall contain copyright notice in appropriate locations and forms.&nbsp; Such notices shall be consistent with any instructions which might be provided by MICHIGAN; and shall include all copyright and other notices in the form supplied by MICHIGAN</li><li>MICHIGAN and LICENSEE agree that any xerographically or electronically reproduced copy of this fully-executed agreement shall have the same legal force and effect as any copy bearing original signatures of the parties.</li></ol><p>&nbsp;</p></div>'
-		
 
-var predAnthNum = 28;
-var predLandmarkNum = 119;
-// Mouse tooltip variables
-let raycaster;
+// Scene tooltip variables
 let mouse, INTERSECTED;
 let cameraOrtho, sceneOrtho;
 //End line num of PCA data
 var endline = 43666;
+var plane;
+var container;
+var camera, cameraTarget, scene, renderer, controls;
+var light1, light2;
+var gridhelper;
+var raycaster;
+
+var showAxes = true;
+var humanAxes = new THREE.Object3D();
+var wheelchairAxes  = new THREE.Object3D();
+var centerPoint = new THREE.Vector3(0, 0, 0); // Center point of the human
 
 
+var plyRotation = new THREE.Vector3(-60 * (Math.PI / 180), 0, 90 * (Math.PI / 180));
+var objRotation = new THREE.Vector3(-Math.PI / 2,0,-Math.PI / 2);
 
 // Track bars
 var anth = new function() {
@@ -58,6 +66,8 @@ var anth = new function() {
     this.LandmarkView = false;
     this.FileType = 'obj';
     this.FileName = 'BioHuman';
+
+    this.OPACITY = 100;
 
     // wheelchair parameters
     this.FLOORHEIGHT = 21;  // Initial value
@@ -198,13 +208,19 @@ function CheckLicense()
 var gui = new dat.GUI();
 gui.width = 350;
 gui.add(anth, 'STUDY', { US: 1, JAPAN: -1} ).onChange( function(){
+    plyParameterChanged = true;
                 animate();
                 }).name("Study Population").listen();
-    
 gui.add(anth, 'GENDER', { MALE: 1, FEMALE: -1} ).name("Sex").onChange( function(){
+    plyParameterChanged = true;
                 animate();
                 }).listen();
-
+gui.add({ showAxes: showAxes }, 'showAxes').name("Show Axes").onChange(function(value){
+    showAxes = value;
+}).listen();                            
+gui.add(anth, 'OPACITY', 0, 100).name("opacity").onChange(function(value) {
+    plyParameterChanged = true;
+});
 gui.add(anth, 'STATURE', 1450, 1900).name("Stature (mm)").onChange(function(value) {
     plyParameterChanged = true;
 });
@@ -229,49 +245,8 @@ folder2.add(anth, 'Landmarks').name("Export Landmarks");
 folder2.add(anth, 'BodyDimensions').name("Export Body Dimentions");
 
 
-
-// var folder3 = gui.addFolder('Visualization Option');
-// var palette = new function() {
-//     this.bgColor = [ 255, 255, 255 ];
-//     this.modelColor =[ 255, 255, 255 ];
-//     this.showwireframe= false;
-//     this.reset = function(){
-//         plane.visible = true;
-//         renderer.setClearColor( scene.fog.color, 1 );
-//         material.color.r = 1;
-//         material.color.g = 1;
-//         material.color.b = 1;
-//     };
-// };
-// folder3.addColor(palette, 'bgColor').name("Set Background Color")
-// .onChange(function(e)
-// {
-//     plane.visible = false;
-//     var bgcolor = new THREE.Color( 0x66aacc ) ;
-//     bgcolor.r = e[0]/255.0;
-//     bgcolor.g = e[1]/255.0;
-//     bgcolor.b = e[2]/255.0;
-//     renderer.setClearColor( bgcolor, 0);
-// });
-
-// folder3.addColor(palette, 'modelColor').name("Set Model Color")
-// .onChange(function(e)
-// {
-//     material.color.r = e[0]/255.0;
-//     material.color.g = e[1]/255.0;
-//     material.color.b = e[2]/255.0;
-// });
-// folder3.add(palette, 'showwireframe').name("Wireframe View On/Off")
-// .onChange(function()
-// {
-//     material.wireframe = palette.showwireframe;
-// });
-// folder3.add(palette, 'reset').name("Reset Visual Option");
-
-
 // Create a folder named "Wheelchair Parameters"
 var wheelchairFolder = gui.addFolder("Wheelchair Parameters");
-
 // wheelchair parameters
 wheelchairFolder.add(anth, 'SEATWIDTH', 15, 25).name("Seat Width (in)").onChange(function(value) {
     objparameterChanged = true;
@@ -282,7 +257,7 @@ wheelchairFolder.add(anth, 'SEATHEIGHT', 15, 25).name("Seat Height (in)").onChan
 wheelchairFolder.add(anth, 'FLOORHEIGHT', 15, 30).name("Seat Height from Floor (in)").onChange(function(value) {
     objparameterChanged = true;
 });
-wheelchairFolder.add(anth, 'CAMBER', 0, 10).name("Camber (in)").onChange(function(value) {
+wheelchairFolder.add(anth, 'CAMBER', 0, 10).name("Camber (degree)").onChange(function(value) {
     objparameterChanged = true;
 });
 wheelchairFolder.add(anth, 'LEGLEN', 0, 10).name("Leg Length (in)").onChange(function(value) {
@@ -446,6 +421,7 @@ var save = function ( PCAdata, numAnth, numLm, filename ){
         'LEGLEN',
         'LEGRESTANG',
         'FLOORHEIGHT',
+        'OPACITY'
     ];
         
     
@@ -557,8 +533,76 @@ function calcCoords(diffAnths, onePCAdata) {
     return diffCoords;
 }
 
+function applyRotation(object, xval, yval, zval){
+    object.rotation.set(object.rotation.x - xval, object.rotation.y - yval, object.rotation.z - zval);
+}
+
+function makeAxes(length, thisMesh, thisAxes, location) {
+    // Create a new group for the axes
+    var axesGroup = new THREE.Group();
+    
+    
+
+    if (thisMesh) {
+
+        // Add arrowhead axes
+        var arrowColorX = 0xff0000; // Red
+        var arrowColorY = 0x00ff00; // Green
+        var arrowColorZ = 0x0000ff; // Blue
+
+        var xDir;
+        var yDir;
+        var zDir;
+        if (thisAxes === "human") {
+            xDir = new THREE.Vector3(0, -1, 0);
+            yDir = new THREE.Vector3(0, 0, 1);
+            zDir = new THREE.Vector3(-1, 0, 0);
+        }
+        else if (thisAxes === "wheelchair") {
+            xDir = new THREE.Vector3(0, 1, 0);
+            yDir = new THREE.Vector3(0, 0, 1);
+            zDir = new THREE.Vector3(1, 0, 0);
+        }
+
+        // Create arrow helpers
+        var arrowX = new THREE.ArrowHelper(xDir, location, length, arrowColorX, 0.1, 0.05);
+        var arrowY = new THREE.ArrowHelper(yDir, location, length, arrowColorY, 0.1, 0.05);
+        var arrowZ = new THREE.ArrowHelper(zDir, location, length, arrowColorZ, 0.1, 0.05);
+        
+    
+        // Add arrows to the axes group
+        axesGroup.add(arrowX);
+        axesGroup.add(arrowY);
+        axesGroup.add(arrowZ);
+        
+        // Set axes group name for identification
+        axesGroup.name = thisAxes + "Axes";
+        
+        // Check if old axes exist and remove them if so
+        removeAxes(thisAxes);
+
+        // Add axes group to the appropriate axes parent
+        if (thisAxes === "human") {
+            humanAxes = axesGroup;
+            scene.add(humanAxes);
+        } else if (thisAxes === "wheelchair") {
+            wheelchairAxes = axesGroup;
+            scene.add(wheelchairAxes);
+        }
+    }
+}
+
+function removeAxes(axesType) {
+    // Check if axes with specified type exist and remove them if so
+    let oldAxes = scene.getObjectByName(axesType + "Axes");
+    if (oldAxes !== undefined) {
+        scene.remove(oldAxes);
+    }
+}
+
+
 // load the HUMAN model
-function loadPLYFile(PLYposx,PLYposy,PLYposz) {
+function loadPLYFile(PLYposx, PLYposy, PLYposz) {
     const loader = new PLYLoader();
     loader.load('model/mean_model_tri.ply', function (geometry) {
         plyGeometry = geometry;
@@ -570,14 +614,13 @@ function loadPLYFile(PLYposx,PLYposy,PLYposz) {
         if (geometry.isBufferGeometry) {
             // Process BufferGeometry
             var positions = geometry.attributes.position;
-            // var geometryZero = [];
             for (let i = 0; i < positions.count; i++) {
                 var x = positions.getX(i);
                 var y = positions.getY(i);
                 var z = positions.getZ(i);
                 geometryZero.push(new THREE.Vector3(x, y, z));
+                centerPoint.add(new THREE.Vector3(x, y, z));
             }
-
             var Anths = [anth.STUDY, anth.GENDER, anth.STATURE, anth.SHS, anth.BMI, anth.AGE, 1];
             var skipNum = predAnthNum + predLandmarkNum * 3;
 
@@ -594,6 +637,7 @@ function loadPLYFile(PLYposx,PLYposy,PLYposz) {
                 );
             }
 
+            centerPoint.divideScalar(positions.count);
             positions.needsUpdate = true;
             geometry.computeVertexNormals();
         }
@@ -601,25 +645,28 @@ function loadPLYFile(PLYposx,PLYposy,PLYposz) {
         // Create material and mesh
         var material = new THREE.MeshPhongMaterial({
             color: 0xffffff,
-            specular: 0xaaaaaa, // Adjust specular color for shiny effect
-            shininess: 20,      // Adjust shininess for glossiness
-            // Other properties like reflectivity can also be adjusted
-            shading: THREE.SmoothShading
+            specular: 0xaaaaaa,
+            shininess: 20,
+            opacity: 1.0, // Set the opacity here
+            transparent: true // Enable transparency
         });
 
+        plyMaterial = material;
         // Remove the previous PLY mesh if it exists
         if (plyMesh) {
             scene.remove(plyMesh);
         }
 
         // Create the new mesh and assign it to plyMesh
-        plyMesh = new THREE.Mesh(geometry, material);
-        plyMesh.rotation.set(-60 * (Math.PI / 180), 0, 90 * (Math.PI / 180));
-   
+        plyMesh = new THREE.Mesh(geometry, plyMaterial);
+        plyMesh.rotation.set(plyRotation.x, plyRotation.y, plyRotation.z);
+
         plyMesh.position.set(PLYposx, PLYposy, PLYposz);
         plyMesh.scale.set(0.0011, 0.0011, 0.0011);
         plyMesh.castShadow = true;
         plyMesh.receiveShadow = true;
+
+        centerPoint.add(new THREE.Vector3(PLYposx, PLYposy, PLYposz));
         // Add the new mesh to the scene
         scene.add(plyMesh);
 
@@ -634,7 +681,6 @@ function loadAndUpdateOBJ(posx, posy, posz, wheelchairParams, wheelchairQuality)
         color: 0xffffff,
         specular: 0xaaaaaa,
         shininess: 20,
-        shading: THREE.SmoothShading
     });
     
     // Create the new wheelchair mesh
@@ -643,7 +689,8 @@ function loadAndUpdateOBJ(posx, posy, posz, wheelchairParams, wheelchairQuality)
     // Update the position, scale, and rotation
     objMesh.position.set(posx - 0.3, posy - 0.7, posz);
     objMesh.scale.set(0.001, 0.001, 0.001);
-    objMesh.rotation.set(-Math.PI / 2, 0, -Math.PI / 2);
+    objMesh.rotation.set(objRotation.x, objRotation.y, objRotation.z);
+
     scene.add(objMesh);
 }
 
@@ -668,6 +715,66 @@ function newMesh(wheelchairParams, wheelchairQuality, wheelchairMaterial) {
         objGeometry = updatedWheelchairGeometry;
     }
 }
+
+function initializeGridHelper(dimension) {
+    const size = 20;
+    const divisions = 20;
+    const numberOfPlanes = 21;
+    const gridHelpers = [];
+    let gridRotationVal = 0;
+    dimension = dimension.toUpperCase();
+
+    if (dimension === "Y") {
+        gridRotationVal = 90 * (Math.PI / 180);
+    }
+
+    // Calculate the number of planes to place in front and behind the original
+    const planesInFront = Math.floor(numberOfPlanes / 2);
+    const planesBehind = numberOfPlanes - planesInFront - 1; // Subtract 1 for the original plane
+
+    // Create the original plane
+    const originalGridHelper = new THREE.GridHelper(size, divisions);
+    originalGridHelper.rotation.x += gridRotationVal;
+    originalGridHelper.position.z = -size / divisions; // Assuming cameraTarget is already defined
+    // Set the material of the original plane to red
+    originalGridHelper.material.opacity = 0.7;
+    originalGridHelper.material.transparent = true;
+    originalGridHelper.material.color.set(0xff0000);
+    gridHelpers.push(originalGridHelper);
+    scene.add(originalGridHelper);
+
+    let positionKey = "z";
+    if (dimension === "X") {
+        positionKey = "y";
+    }
+
+    // Add planes in front of the original
+    for (let i = 1; i <= planesInFront; i++) {
+        const gridHelper = new THREE.GridHelper(size, divisions);
+        gridHelper.position.copy(originalGridHelper.position);
+        gridHelper.position[positionKey] = originalGridHelper.position[positionKey] + i * (size / divisions);
+        gridHelper.rotation.x += gridRotationVal;
+        gridHelper.material.opacity = 0.1;
+        gridHelper.material.transparent = true;
+        gridHelpers.unshift(gridHelper); // Add to the beginning of the array
+        scene.add(gridHelper);
+    }
+
+    // Add planes behind the original
+    for (let i = 1; i <= planesBehind; i++) {
+        const gridHelper = new THREE.GridHelper(size, divisions);
+        gridHelper.position.copy(originalGridHelper.position);
+        gridHelper.position[positionKey] = originalGridHelper.position[positionKey] - i * (size / divisions);
+        gridHelper.rotation.x += gridRotationVal;
+        gridHelper.material.opacity = 0.1;
+        gridHelper.material.transparent = true;
+        gridHelpers.push(gridHelper); // Add to the end of the array
+        scene.add(gridHelper);
+    }
+}
+
+
+
 
 // init function
 function init(data) {
@@ -702,63 +809,59 @@ function init(data) {
     container = document.createElement( 'div' );
     document.body.appendChild( container );
 
+    // camera setup
     camera = new THREE.PerspectiveCamera( 100, window.innerWidth / window.innerHeight, 0.1, 100 );
-    camera.position.set( 0, 0, 0 );
+    camera.position.set( 0, 0, 1.5 );
     cameraTarget = new THREE.Vector3( 0, 0, 0 );
     scene = new THREE.Scene();
     scene.fog = new THREE.Fog( 0x111111, 2, 15 );
-
 
     //Mouse tooltip
     cameraOrtho = new THREE.OrthographicCamera(window.innerWidth / -2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / -2, 1, 1000 );
     cameraOrtho.position.z = 10;
     sceneOrtho = new THREE.Scene();
 
-
-
     // Ground
     plane = new THREE.Mesh(
         // new THREE.PlaneBufferGeometry( 40, 40 ),
         new THREE.PlaneGeometry( 40, 40 ),
-        new THREE.MeshPhongMaterial( { ambient: 0x7799cc, color: 0x66aacc, specular: 0xdddddd } )
+        new THREE.MeshPhongMaterial( { color: 0x66aacc, specular: 0xdddddd } )
     );
     plane.rotation.x = -Math.PI/2;
     plane.position.y = -1.2;
     scene.add( plane );
     plane.receiveShadow = true;
 
-
     // renderer
     renderer = new THREE.WebGLRenderer( { antialias: true } );
     renderer.setSize( window.innerWidth, window.innerHeight );
     renderer.setClearColor( scene.fog.color, 1 );
-
     renderer.gammaInput = true;
     renderer.gammaOutput = true;
-    renderer.shadowMapEnabled = true;
-    renderer.shadowMapCullFace = THREE.CullFaceBack;
+
 
     // Mouse tooltip
     renderer.autoClear = false;
     container.appendChild( renderer.domElement );
 
 
-
     // Assuming that 'camera', 'renderer', and 'OrbitControls' have been correctly set up
     controls = new OrbitControls(camera, renderer.domElement);
-    // Set the minimum and maximum distance for zooming
     controls.minDistance = 0;
     controls.maxDistance = 50;
     // Set the target of the controls to the position of your object
-    controls.target.set(camera.position.x, camera.position.y, camera.position.z-1.5);
+    controls.target.set(0,0,0);
 
 
     // Load your OBJ file and Plyfile using a library like three.js
-    loadAndUpdateOBJ(controls.target.x, controls.target.y, controls.target.z, wheelchairParams, 20);
-    loadPLYFile(controls.target.x, controls.target.y -0.08, controls.target.z+0.03);
-    // Update controls to apply changes
+    loadAndUpdateOBJ(controls.target.x, controls.target.y , controls.target.z , wheelchairParams, 20);
+    loadPLYFile(controls.target.x , controls.target.y -0.08 , controls.target.z+0.03 );
     controls.update();
 
+
+    // grid system 
+    // initializeGridHelper("Y");
+    // initializeGridHelper("X");
 
 
     // Lights
@@ -766,59 +869,27 @@ function init(data) {
     light1.position.set( -0.5, 1, 0.5 );
     light1.intensity = 1.5; // Increase as needed
 
-    scene.add( light1 );
-
     light2 = new THREE.DirectionalLight( 0xffffff );
     light2.position.set( -1, 1, 0 )
     light2.intensity = 1.5; // Increase as needed
+    scene.add( light1 );
     scene.add( light2 );
-
     setShadowedLight( light1 );
     setShadowedLight( light2 );
 
     var spotlight = new THREE.SpotLight(0xffffff); // Use white light or any color you prefer
     spotlight.position.set(0, 0, 10); // Position the light at the origin or any desired position
-    // Set the target point to (0, 0, -2)
     spotlight.target.position.set(0, 0, -1.4);
-    spotlight.intensity = 25; // Increase as needed
-    
-    scene.add(spotlight); // Add the spotlight to the scene
-    scene.add(spotlight.target); // Important to add the target to the scene as well
-
+    spotlight.intensity = 25;
+    scene.add(spotlight); 
+    scene.add(spotlight.target);
     setShadowedLight( spotlight );
+
         
-    
-
-
     // Mouse tooltip init
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2();
     document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-
-    //testing camera position
-        // // Create a small red cube
-        // var cubeGeometry = new THREE.BoxGeometry(0.3, 0.3, 0.3); // Size of the cube
-        // var cubeMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red color
-        // var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-    
-        // // Position the cube where the camera is looking
-        // // Assuming the camera is looking at the origin (0, 0, 0)
-        // cube.position.set(0, 0, 0);
-    
-        // // Add the cube to the scene
-        // scene.add(cube);
-
-        // // Create a green cube
-        // var greenCubeGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1); // Adjust size as needed
-        // var greenCubeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); // Green color
-        // var greenCube = new THREE.Mesh(greenCubeGeometry, greenCubeMaterial);
-
-        // // Assuming you have set up OrbitControls for cameraOrtho
-        // // Set the green cube's position to the target of the camera
-        // greenCube.position.copy(controls.target); // Replace 'controls' with your OrbitControls instance
-
-        // // Add the green cube to the scene
-        // scene.add(greenCube);
 }
 
 
@@ -826,8 +897,6 @@ function init(data) {
 function updatePLYGeometry(anth, geometry, geometryZero, PCAdata, predAnthNum, predLandmarkNum) {
 
     var Anths = [anth.STUDY, anth.GENDER, anth.STATURE, anth.SHS, anth.BMI, anth.AGE, 1];
-
-
     var positions = geometry.attributes.position;
     var skipNum = predAnthNum + predLandmarkNum * 3;
 
@@ -842,10 +911,22 @@ function updatePLYGeometry(anth, geometry, geometryZero, PCAdata, predAnthNum, p
             geometryZero[i].y + diffy,
             geometryZero[i].z + diffz
         );
+
+        // Calculate sum of all vertex positions
+        centerPoint.add(new THREE.Vector3(
+            geometryZero[i].x + diffx,
+            geometryZero[i].y + diffy,
+            geometryZero[i].z + diffz
+        ));
     }
 
+    // Divide by the number of vertices to get the average position
+    centerPoint.divideScalar(positions.count);
+
+    plyMaterial.opacity = anth.OPACITY / 100;
     positions.needsUpdate = true;
     geometry.computeVertexNormals();
+
 }
 
 
@@ -854,24 +935,15 @@ async function animate() {
 
     requestAnimationFrame( animate );
 
-
     light1.position.x = -1.45*camera.position.z;
     light1.position.z = 1.75 * camera.position.x;
-
     light2.position.x = camera.position.x;
-    light2.position.z = camera.position.z;
+    light2.position.z = camera.position.z;    
 
 
     if(plyParameterChanged)
     {
         gui.__controllers[1].updateDisplay();
-
-        oldStt = anth.STATURE;
-        oldBMI = anth.BMI;
-        oldAge = anth.AGE;
-        oldGen = anth.GENDER;
-        oldSHS = anth.SHS;
-        oldStd = anth.STUDY;
         
         // load PLY file;
         updatePLYGeometry(anth, plyGeometry, geometryZero, PCAdata, predAnthNum, predLandmarkNum);
@@ -904,13 +976,26 @@ async function animate() {
         // Reset the flag
         objparameterChanged = false;
     }
+
+
+
+    if (showAxes && plyMesh && objMesh) {
+        // Add axes helper
+        makeAxes(1, plyMesh, "human", plyMesh.position);
+        makeAxes(1, objMesh, "wheelchair", objMesh.position );
+    }
+    else {
+        // Remove axes helper
+        removeAxes("human");
+        removeAxes("wheelchair");
+    }
+
+
     // Mouse tooltip
     renderer.clear();
     renderer.render( scene, camera );
     renderer.clearDepth();
     renderer.render( sceneOrtho, cameraOrtho );
-    // Mouse tooltip
-
 }
 
 
