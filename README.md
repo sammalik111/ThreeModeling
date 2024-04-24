@@ -48,4 +48,8 @@ This guide provides detailed instructions for setting up and replicating the pro
   - Transfer the built files to this directory to update the server.
 - **Verification:** Ensure that all changes are successfully transferred to the server. In some cases, certain resources like the models may not transfer fully, requiring manual addition, or the path to certain files in index.html build might be incorrect. Adjust as needed.
 
+- Example:
+- (default build path) : <script type="module" crossorigin src="/WheelchairTool/index-tey82qbK.js"></script>
+- (correct path):        <script type="module" crossorigin src="/WheelchairTool/assets/index-tey82qbK.js"></script>
+
 By following these outlined procedures, any future programmer should be able to replicate the work done on the project efficiently.
